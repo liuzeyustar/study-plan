@@ -868,6 +868,36 @@
   .slot-x:hover { color: var(--danger); }
   .slot-add { display: flex; gap: 6px; align-items: center; margin-top: 4px; }
   .slot-add .wk-input { width: 120px; }
+
+  /* ---------- 移动端适配：小屏改为单列堆叠，避免内容被压缩 ---------- */
+  @media (max-width: 760px) {
+    body { overflow: auto; }
+    .app {
+      grid-template-columns: 1fr;
+      height: auto;
+      min-height: 100vh;
+    }
+    .sidebar {
+      position: static;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      max-height: none;
+    }
+    .main {
+      overflow: visible;
+      height: auto;
+      min-height: 0;
+    }
+    .tabs {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    .topbar {
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 16px;
+    }
+  }
 </style>
 </head>
 <body>
