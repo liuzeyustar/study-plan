@@ -1,0 +1,2291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>课程任务 · Study Plan</title>
+<style>
+  :root {
+    --bg: #0b0b0d;
+    --bg-2: #111114;
+    --surface: #16161a;
+    --surface-2: #1c1c21;
+    --surface-h: #222228;
+    --border: #2a2a31;
+    --border-2: #34343d;
+    --text: #eef0f3;
+    --text-2: #b4b7bf;
+    --text-3: #7a7e89;
+    --accent: #34d399;
+    --accent-2: #6ee7b7;
+    --accent-dim: rgba(52, 211, 153, 0.14);
+    --danger: #f87171;
+    --warn: #fbbf24;
+    --radius: 12px;
+    --radius-s: 8px;
+    --shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 8px 24px -12px rgba(0,0,0,0.6);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  button { font-family: inherit; color: inherit; cursor: pointer; border: none; background: none; }
+  input { font-family: inherit; color: inherit; border: none; background: none; outline: none; }
+  ::selection { background: var(--accent-dim); color: var(--accent-2); }
+
+  .app {
+    display: grid;
+    grid-template-columns: 232px 1fr;
+    height: 100vh;
+  }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    background: var(--bg-2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 18px 14px;
+    gap: 18px;
+  }
+  .brand {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 6px 4px;
+  }
+  .brand .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent);
+  }
+  .tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .tab {
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: var(--radius-s);
+    color: var(--text-2);
+    font-size: 13px;
+    font-weight: 500;
+    transition: background .15s, color .15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tab:hover { background: var(--surface); color: var(--text); }
+  .tab.active { background: var(--surface-2); color: var(--text); }
+  .tab .count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-3);
+    background: var(--surface);
+    padding: 1px 7px;
+    border-radius: 999px;
+  }
+  .tab.active .count { background: var(--accent-dim); color: var(--accent-2); }
+
+  .courses-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-3);
+    padding: 0 6px 4px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .add-course-btn {
+    font-size: 16px;
+    line-height: 1;
+    color: var(--text-3);
+    padding: 2px 7px;
+    border-radius: 5px;
+    text-transform: none;
+    letter-spacing: 0;
+    transition: background .12s, color .12s;
+  }
+  .add-course-btn:hover { background: var(--surface); color: var(--accent-2); }
+  .courses-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+    flex: 1;
+    padding-bottom: 4px;
+  }
+  .course-chip {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 4px 10px;
+    min-height: 27px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .course-chip:hover { background: var(--surface); }
+  .course-chip.active { background: var(--surface-2); }
+  .course-chip .swatch {
+    width: 6px; height: 6px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .course-chip .cshort { font-size: 12.5px; color: var(--text-2); white-space: nowrap; }
+  .course-chip:hover .cshort,
+  .course-chip.active .cshort { color: var(--text); }
+
+  .sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+  }
+  .date-row { display: flex; gap: 6px; }
+  .date-row input[type="date"] {
+    flex: 1; min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    padding: 7px 8px;
+    font-size: 12px;
+    color: var(--text-2);
+    font-family: inherit;
+  }
+  .date-row input[type="date"]:focus { border-color: var(--accent); outline: none; }
+  .date-row .btn { flex-shrink: 0; padding: 7px 11px; }
+  .btn {
+    padding: 8px 12px;
+    border-radius: var(--radius-s);
+    font-size: 12.5px;
+    font-weight: 500;
+    transition: background .15s, transform .1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--accent); color: #052e22; }
+  .btn-primary:hover { background: var(--accent-2); }
+  .btn-ghost { background: var(--surface); color: var(--text-2); }
+  .btn-ghost:hover { background: var(--surface-h); color: var(--text); }
+
+  /* ---------- Main ---------- */
+  .main {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 32px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .date-block .date-large {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .date-block .date-sub {
+    font-size: 12.5px;
+    color: var(--text-3);
+    margin-top: 2px;
+  }
+  .progress-block {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 18px 10px 12px;
+  }
+  .sync-block {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 14px;
+    margin-left: 12px;
+  }
+  .sync-state {
+    font-size: 12px;
+    color: var(--text-3);
+    max-width: 74px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sync-dot-btn {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: #9ca3af;              /* 灰：未连接 */
+    flex-shrink: 0;
+  }
+  .sync-dot-btn.sync-loading { background: #fbbf24; animation: sync-pulse 1s infinite; }
+  .sync-dot-btn.sync-ok      { background: #34d399; }
+  .sync-dot-btn.sync-error   { background: #ef4444; }
+  @keyframes sync-pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .ring {
+    --p: 0;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background:
+      conic-gradient(var(--accent) calc(var(--p) * 1%), var(--surface-2) 0);
+    display: grid;
+    place-items: center;
+    position: relative;
+  }
+  .ring::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: var(--surface);
+  }
+  .ring span {
+    position: relative;
+    z-index: 1;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .progress-meta .pct { font-size: 15px; font-weight: 600; }
+  .progress-meta .pdesc { font-size: 11.5px; color: var(--text-3); margin-top: 1px; }
+
+  .views {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 32px 40px;
+  }
+  .view { display: none; animation: fade .25s ease; }
+  .view.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: none; } }
+
+  .section-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-3);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ---------- Today view ---------- */
+  .day-classes { display: flex; flex-direction: column; gap: 14px; }
+  .class-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  /* 从课表跳转过来时高亮该节课 */
+  @keyframes flashHighlight {
+    0%   { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+    22%  { box-shadow: 0 0 0 4px rgba(52,211,153,0.4); }
+    100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+  }
+  .class-block.flash { animation: flashHighlight 1.5s ease; }
+  .class-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .class-head .stripe {
+    width: 3px; height: 32px; border-radius: 2px;
+  }
+  .class-head .ctime {
+    font-size: 12px;
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+    min-width: 92px;
+  }
+  .class-head .cname { font-size: 15px; font-weight: 600; }
+  .class-head .cmeta { font-size: 12px; color: var(--text-3); margin-left: auto; display: flex; gap: 12px; }
+  .class-tasks { padding: 8px 12px 12px; display: flex; flex-direction: column; gap: 2px; }
+  .task-row {
+    display: block;
+    padding: 6px;
+    border-radius: 6px;
+    transition: background .12s;
+  }
+  .task-row:hover { background: var(--surface-2); }
+  .task-line { display: flex; align-items: center; gap: 10px; }
+  .task-note {
+    font-size: 11.5px;
+    color: var(--text-3);
+    line-height: 1.5;
+    min-height: 17px;
+    padding: 1px 4px 1px 27px;
+    border-radius: 4px;
+    outline: none;
+    overflow-wrap: anywhere;
+    transition: background .12s, color .12s;
+  }
+  .task-note.empty::before { content: attr(data-ph); opacity: 0; transition: opacity .15s; }
+  .task-row:hover .task-note.empty::before,
+  .lt-row:hover .task-note.empty::before { opacity: .55; }
+  .task-note:focus { background: var(--surface); color: var(--text); }
+  .chk {
+    width: 17px; height: 17px;
+    border: 1.5px solid var(--border-2);
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .chk:hover { border-color: var(--accent); }
+  .chk.checked { background: var(--accent); border-color: var(--accent); }
+  .chk.checked::after {
+    content: '';
+    width: 4px; height: 8px;
+    border: solid #052e22;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg) translate(-1px, -1px);
+  }
+  .task-title {
+    flex: 1;
+    min-width: 0;          /* 允许收缩，避免长标题把日期挤出可视区 */
+    font-size: 13.5px;
+    color: var(--text);
+    outline: none;
+    overflow-wrap: anywhere;
+  }
+  .task-title[contenteditable="true"]:focus { background: var(--surface-2); border-radius: 4px; padding: 1px 4px; }
+  .task-row.done .task-title { color: var(--text-3); text-decoration: line-through; }
+  .task-tag {
+    flex-shrink: 0;
+    font-size: 10.5px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-weight: 500;
+  }
+  .tag-hw { background: rgba(96,165,250,0.14); color: #93c5fd; }
+  .tag-review { background: rgba(167,139,250,0.14); color: #c4b5fd; }
+  .tag-long { background: rgba(148,163,184,0.16); color: #cbd5e1; }
+  .tag-task { background: rgba(52,211,153,0.14); color: #6ee7b7; }
+  .task-del {
+    flex-shrink: 0;
+    color: var(--text-3);
+    opacity: 0;
+    transition: opacity .15s;
+    font-size: 15px;
+    padding: 0 4px;
+  }
+  .task-row:hover .task-del { opacity: 1; }
+  .task-del:hover { color: var(--danger); }
+
+  .task-due {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    font-size: 11px;
+    color: var(--text-3);
+    padding: 2px 7px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+    transition: background .12s, border-color .12s, color .12s;
+  }
+  .task-due:hover { background: var(--surface-2); border-color: var(--border-2); color: var(--text); }
+  .task-due.soon { color: var(--warn); }
+  .task-due.overdue { color: var(--danger); }
+  .task-due input[type="date"] {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: inherit;
+    font-size: 11px;
+    font-family: inherit;
+    width: 106px;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  .task-due input[type="date"]::-webkit-calendar-picker-indicator { opacity: .5; cursor: pointer; }
+  .task-due input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+  .lt-due input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: inherit;
+    font-size: 11px;
+    font-family: inherit;
+    width: 106px;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  .lt-due input::-webkit-calendar-picker-indicator { opacity: .5; cursor: pointer; }
+  .lt-due input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+  .add-task-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 6px 2px;
+    color: var(--text-3);
+    font-size: 12.5px;
+    cursor: pointer;
+    border-radius: 6px;
+  }
+  .add-task-row:hover { color: var(--accent-2); background: var(--surface-2); }
+  .add-task-row .plus { font-size: 15px; line-height: 1; }
+
+  .empty-day {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-3);
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+  }
+
+  /* 今日概览统计条 */
+  .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .stat .n { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+  .lt-due {
+    display: inline-flex; align-items: center; flex-shrink: 0;
+    font-size: 11px; color: var(--text-3);
+    padding: 2px 7px; border: 1px solid var(--border); border-radius: 5px;
+    cursor: pointer; font-variant-numeric: tabular-nums;
+    transition: background .12s, border-color .12s, color .12s;
+  }
+  .lt-due:hover { background: var(--surface-2); border-color: var(--border-2); color: var(--text); }
+  .lt-due.soon { color: var(--warn); }
+  .lt-due.overdue { color: var(--danger); }
+  .pri-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .pri-high { background: var(--danger); }
+  .pri-med { background: var(--warn); }
+  .pri-low { background: var(--text-3); }
+
+  /* ---------- 即将到期 ---------- */
+  .due-group { margin-bottom: 22px; }
+  .due-group-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .due-group-head .dg-name { font-size: 13px; font-weight: 600; color: var(--text-2); }
+  .due-group-head .dg-name.overdue { color: var(--danger); }
+  .due-group-head .dg-name.today { color: var(--accent-2); }
+  .due-group-head .dg-name.soon { color: var(--warn); }
+  .due-group-head .dg-count {
+    font-size: 11px; color: var(--text-3);
+    background: var(--surface-2); padding: 1px 8px; border-radius: 999px;
+  }
+  .archive-head { cursor: pointer; user-select: none; }
+  .archive-head:hover .dg-name { color: var(--text); }
+  .archive-caret { color: var(--text-3); font-size: 11px; transition: transform .15s; }
+  .archive-tip { font-size: 10.5px; color: var(--text-3); margin-left: auto; }
+  .due-list {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .due-days {
+    flex-shrink: 0;
+    font-size: 10.5px;
+    color: var(--text-3);
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    white-space: nowrap;
+  }
+  .due-days.overdue { color: #fca5a5; background: rgba(248,113,113,0.14); }
+  .due-days.today { color: var(--accent-2); background: var(--accent-dim); }
+  .due-days.soon { color: var(--warn); background: rgba(251,191,36,0.12); }
+  .due-empty {
+    text-align: center; padding: 40px 20px; color: var(--text-3);
+    background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius);
+  }
+
+  /* ---------- Schedule view ---------- */
+  .week-grid {
+    display: grid;
+    grid-template-columns: 56px repeat(7, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .wk-head {
+    background: var(--surface);
+    padding: 10px 4px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-3);
+    font-weight: 500;
+  }
+  .wk-head.today { color: var(--accent-2); background: var(--accent-dim); }
+  .wk-time {
+    background: var(--surface);
+    padding: 8px 4px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .wk-cell {
+    background: var(--surface);
+    min-height: 64px;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .wk-cell.today { background: rgba(52,211,153,0.04); }
+  .wk-slot {
+    background: var(--surface-2);
+    border-left: 3px solid;
+    border-radius: 5px;
+    padding: 5px 7px;
+    font-size: 11px;
+    line-height: 1.3;
+    cursor: pointer;
+    transition: transform .1s;
+  }
+  .wk-slot:hover { transform: translateX(2px); }
+  .wk-slot .ws-time { color: var(--text-3); font-size: 10px; }
+  .wk-slot .ws-name { color: var(--text); font-weight: 500; }
+
+  /* ---------- 长期任务列表（课程视图内） ---------- */
+  .lt-list { display: flex; flex-direction: column; gap: 2px; }
+  .lt-row {
+    display: block;
+    padding: 7px 12px;
+    border-radius: var(--radius-s);
+    transition: background .12s;
+  }
+  .lt-row:hover { background: var(--surface); }
+  .lt-line { display: flex; align-items: center; gap: 12px; }
+  .lt-row .lt-title { flex: 1; min-width: 0; font-size: 13.5px; overflow-wrap: anywhere; }
+  .lt-row.done .lt-title { color: var(--text-3); text-decoration: line-through; }
+  .lt-row .task-note { padding-left: 29px; }
+  .lt-course-tag {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--text-2);
+  }
+
+  /* ---------- 即将到期 列表行 ---------- */
+  .due-row {
+    display: block;
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .due-row:last-child { border-bottom: none; }
+  .due-line { display: flex; align-items: center; gap: 10px; }
+  .due-row .due-title {
+    flex: 1; min-width: 0; font-size: 13.5px;
+    color: var(--text); outline: none; overflow-wrap: anywhere;
+  }
+  .due-row .task-note { padding-left: 27px; }
+  .due-row .task-note.empty { display: none; }
+  .due-row.done .due-title { color: var(--text-3); text-decoration: line-through; }
+  .due-row .due-title[contenteditable="true"]:focus {
+    background: var(--surface-2); border-radius: 4px; padding: 1px 4px;
+  }
+
+  /* ---------- 提醒按钮 ---------- */
+  .remind-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--text-3);
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    cursor: pointer;
+    background: none;
+    transition: border-color .12s, color .12s, background .12s;
+  }
+  .remind-btn:hover { border-color: var(--border-2); color: var(--text); background: var(--surface-2); }
+  .remind-btn.on { color: var(--warn); border-color: rgba(251,191,36,0.4); background: rgba(251,191,36,0.1); }
+  .remind-btn .rb-label { font-size: 10px; font-weight: 600; }
+
+  /* ---------- 今日计划 ---------- */
+  .plan-bar {
+    flex-shrink: 0;               /* 固定高度，不随滚动 */
+    padding: 12px 32px 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .plan-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .plan-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .plan-head .pl-title { font-size: 15px; font-weight: 600; }
+  .plan-head .pl-count { font-size: 11px; color: var(--text-3); background: var(--surface-2); padding: 1px 9px; border-radius: 999px; }
+  .plan-list { display: flex; flex-direction: column; gap: 2px; min-height: 20px; max-height: 132px; overflow-y: auto; }
+  .plan-row { display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 6px; }
+  .plan-row:hover { background: var(--surface-2); }
+  .plan-title { flex: 1; min-width: 0; font-size: 13.5px; overflow-wrap: anywhere; }
+  .plan-title.done { color: var(--text-3); text-decoration: line-through; }
+  .plan-del { color: var(--text-3); opacity: 0; font-size: 15px; cursor: pointer; padding: 0 4px; }
+  .plan-row:hover .plan-del { opacity: 1; }
+  .plan-del:hover { color: var(--danger); }
+  .plan-hint { font-size: 12px; color: var(--text-3); padding: 6px 4px; border: 1px dashed var(--border); border-radius: 8px; text-align: center; }
+  .plan-add { display: flex; gap: 8px; margin-top: 8px; }
+  .plan-add input {
+    flex: 1; min-width: 0;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    padding: 8px 11px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .plan-add input:focus { border-color: var(--accent); outline: none; }
+  .task-row.dragging { opacity: 0.4; }
+  .plan-panel.dragover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+  .plan-panel.dragover .plan-list { outline: 1px dashed var(--accent); outline-offset: 4px; border-radius: 8px; }
+  .plan-grip {
+    flex-shrink: 0;
+    color: var(--text-3);
+    cursor: grab;
+    user-select: none;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0 3px;
+    opacity: .5;
+    transition: opacity .12s, color .12s;
+  }
+  .plan-grip:hover { opacity: 1; color: var(--accent-2); }
+  .plan-grip:active { cursor: grabbing; }
+  .plan-ghost {
+    position: fixed;
+    z-index: 999;
+    width: 22px; height: 22px;
+    display: grid; place-items: center;
+    background: var(--accent);
+    color: #052e22;
+    font-weight: 700;
+    font-size: 14px;
+    border-radius: 50%;
+    box-shadow: 0 6px 18px -6px rgba(0,0,0,0.6);
+    pointer-events: none;
+  }
+
+  /* ---------- Modal ---------- */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal-backdrop.show { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    width: 520px;
+    max-width: 92vw;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal h2 { font-size: 17px; margin-bottom: 6px; }
+  .modal p.desc { font-size: 12.5px; color: var(--text-3); margin-bottom: 18px; }
+  .form-row { margin-bottom: 14px; }
+  .form-row label { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 6px; }
+  .form-row input, .form-row select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    padding: 9px 12px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .form-row textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--text);
+    font-family: "SF Mono", Consolas, monospace;
+    resize: vertical;
+    min-height: 120px;
+  }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+  .color-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .color-swatch {
+    width: 24px; height: 24px; border-radius: 50%;
+    cursor: pointer; border: 2px solid transparent;
+  }
+  .color-swatch.sel { border-color: var(--text); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    opacity: 0;
+    transition: all .3s;
+    z-index: 200;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---------- Course View ---------- */
+  .course-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+  }
+  .course-header .ch-stripe { width: 4px; height: 44px; border-radius: 2px; }
+  .course-header .ch-info { flex: 1; }
+  .course-header .ch-name { font-size: 20px; font-weight: 600; }
+  .course-header .ch-meta { font-size: 12px; color: var(--text-3); margin-top: 4px; display: flex; gap: 16px; }
+  .course-header .ch-cat {
+    font-size: 11px; padding: 3px 10px; border-radius: 999px;
+    background: var(--accent-dim); color: var(--accent-2);
+  }
+  .course-task-section { margin-bottom: 28px; }
+  .course-task-section .section-title { margin-bottom: 10px; }
+  .date-group { margin-bottom: 14px; }
+  .date-group-head {
+    font-size: 12px; color: var(--text-3); font-weight: 500;
+    padding: 0 4px 6px; border-bottom: 1px solid var(--border); margin-bottom: 6px;
+  }
+  .course-add-row {
+    display: flex; align-items: center; gap: 8px; margin-top: 8px;
+  }
+  .course-add-row input[type="text"] {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-s); padding: 8px 12px; font-size: 13px;
+  }
+  .course-add-row select {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-s); padding: 8px 10px; font-size: 12px; color: var(--text-2);
+  }
+  .course-add-row input[type="date"] {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-s); padding: 8px 10px; font-size: 12px; color: var(--text-2);
+  }
+
+  /* ---------- Course editor (modal) ---------- */
+  .cec {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    padding: 12px;
+    margin-bottom: 12px;
+    background: var(--surface-2);
+  }
+  .cec-head { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+  .cec-input {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 7px 10px; font-size: 13px; color: var(--text);
+  }
+  .cec-select {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 7px 8px; font-size: 12.5px; color: var(--text-2); cursor: pointer;
+  }
+  .cec-del {
+    color: var(--danger); font-size: 12px; padding: 6px 10px;
+    border-radius: 6px; border: 1px solid transparent; transition: background .12s;
+  }
+  .cec-del:hover { background: rgba(248,113,113,0.12); }
+  .cec-toggle {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 12.5px; color: var(--text-2);
+    margin-bottom: 10px; cursor: pointer; user-select: none;
+  }
+  .cec-toggle input { cursor: pointer; }
+  .cec-slots { border-top: 1px solid var(--border); padding-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .cec-slots-label { font-size: 11px; color: var(--text-3); margin-bottom: 2px; }
+  .slot-row {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--text-2);
+    background: var(--surface); padding: 6px 10px; border-radius: 6px;
+  }
+  .slot-row .grow { flex: 1; }
+  .slot-row .wk { color: var(--text-3); font-size: 11.5px; }
+  .slot-x { color: var(--text-3); padding: 0 4px; font-size: 14px; }
+  .slot-x:hover { color: var(--danger); }
+  .slot-add { display: flex; gap: 6px; align-items: center; margin-top: 4px; }
+  .slot-add .wk-input { width: 120px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="dot"></span>Study Plan</div>
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-tab="today">今日概览 <span class="count" id="cnt-today">0</span></button>
+      <button class="tab" data-tab="schedule">课表</button>
+      <button class="tab" data-tab="due">即将到期 <span class="count" id="cnt-due">0</span></button>
+    </nav>
+    <div class="courses-label">
+      <span>课程</span>
+      <button class="add-course-btn" id="add-course-btn" title="管理 / 新增课程">+</button>
+    </div>
+    <div class="courses-rail" id="courses-rail"></div>
+    <div class="sidebar-footer">
+      <div class="date-row">
+        <input type="date" id="date-picker" title="查看某一天" />
+        <button class="btn btn-ghost" id="today-btn" title="回到今天">今天</button>
+      </div>
+      <button class="btn btn-ghost" id="manage-courses-btn">管理课程</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="date-block">
+        <div class="date-large" id="date-large"></div>
+        <div class="date-sub" id="date-sub"></div>
+      </div>
+      <div class="progress-block">
+        <div class="ring" id="ring"><span id="ring-text">0%</span></div>
+        <div class="progress-meta">
+          <div class="pct" id="pct-text">0 / 0</div>
+          <div class="pdesc">今日任务进度</div>
+        </div>
+      </div>
+      <div class="sync-block" id="sync-block" title="数据自动同步到云端，手机与电脑共用同一份">
+        <button class="btn btn-ghost" id="sync-btn">同步</button>
+        <span class="sync-dot-btn" id="sync-dot"></span>
+        <span class="sync-state" id="sync-state">未连接</span>
+      </div>
+    </header>
+
+    <!-- 今日计划：常驻可见，任何 tab 下都能把任务拖进来 -->
+    <div class="plan-bar" id="plan-bar">
+      <div class="plan-panel" id="plan-panel">
+        <div class="plan-head">
+          <span class="pl-title">今日计划</span>
+          <span class="pl-count" id="plan-count">0/0</span>
+        </div>
+        <div class="plan-list" id="plan-list"></div>
+        <div class="plan-add">
+          <input type="text" id="plan-input" placeholder="添加今日计划,回车提交…" onkeydown="if(event.key==='Enter')addPlan()" />
+          <button class="btn btn-primary" onclick="addPlan()">添加</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="views">
+      <!-- Today -->
+      <section class="view active" id="view-today">
+        <div class="section-title">今日概览</div>
+        <div class="stat-strip">
+          <div class="stat"><div class="n" id="st-classes">0</div><div class="l">节课</div></div>
+          <div class="stat"><div class="n" id="st-tasks">0</div><div class="l">项任务</div></div>
+          <div class="stat"><div class="n" id="st-done">0</div><div class="l">已完成</div></div>
+          <div class="stat"><div class="n" id="st-left">0</div><div class="l">待完成</div></div>
+        </div>
+        <div class="section-title" style="margin-top:26px">今日课程 · 课后任务</div>
+        <div class="day-classes" id="day-classes"></div>
+      </section>
+
+      <!-- Schedule -->
+      <section class="view" id="view-schedule">
+        <div class="section-title">本周课表</div>
+        <div class="week-grid" id="week-grid"></div>
+      </section>
+
+      <!-- Due -->
+      <section class="view" id="view-due">
+        <div class="section-title">即将到期 · 按紧急程度排序</div>
+        <div id="due-list"></div>
+      </section>
+
+      <!-- Course detail -->
+      <section class="view" id="view-course">
+        <div id="course-detail"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- Course manage modal -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal" style="width:700px">
+    <h2>课程管理</h2>
+    <p class="desc">新增、编辑或删除课程，也可以添加「学生工作」（无需教室与上课时间）。只有勾选「自动生成」的课程才会在上完课后自动产生任务（默认仅数学、物理类开启）；学生工作与其余课程的任务请手动添加。</p>
+    <div id="course-editor"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" style="flex:1" onclick="addCourseRow()">+ 新增课程</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="addWorkRow()">+ 新增学生工作</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveModal()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== State ===================== */
+const STORAGE_KEY = 'study-plan-v2';
+
+/* ===================== 云端同步 (Supabase) ===================== */
+const SUPABASE_URL = 'https://acvfofuvztdgohtwyoib.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_A62q0m6HGXMUys03kcSD9Q_wjcBNDdB';
+
+let cloudReady = false;   // 首次云端拉取完成前，不自动推，避免覆盖云端数据
+let syncTimer = null;
+
+function setSyncStatus(s) {
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-state');
+  if (dot) dot.className = 'sync-dot-btn' + (s === 'off' ? '' : ' sync-' + s);
+  const map = { off: '未连接', loading: '同步中…', ok: '已同步', error: '同步失败' };
+  if (txt) txt.textContent = map[s] || '';
+}
+
+async function fetchRemote() {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/plan_state?id=eq.main&select=data`, {
+    headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` }
+  });
+  if (!r.ok) throw new Error('fetch ' + r.status);
+  const arr = await r.json();
+  return arr.length ? arr[0].data : null;
+}
+
+async function pushRemote() {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/plan_state?on_conflict=id`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}`,
+      'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify({ id: 'main', data: state })
+  });
+  if (!r.ok) throw new Error('push ' + r.status);
+}
+
+// 本地改动 -> 防抖自动上传云端
+function schedulePush() {
+  if (!cloudReady) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(pushNow, 800);
+}
+
+async function pushNow() {
+  clearTimeout(syncTimer);
+  setSyncStatus('loading');
+  try {
+    state.cloudT = Date.now();
+    await pushRemote();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    setSyncStatus('ok');
+  } catch (e) { setSyncStatus('error'); }
+}
+
+// 完整同步一次：先读云端，再决定采纳本地或云端（以 cloudT 时间戳做最后写入者胜出）
+async function syncNow() {
+  clearTimeout(syncTimer);
+  setSyncStatus('loading');
+  try {
+    const remote = await fetchRemote();
+    if (remote && (remote.cloudT || 0) > (state.cloudT || 0)) {
+      // 云端比本地新，采用云端
+      const backup = state;
+      state = Object.assign(defaultState(), remote);
+      state.currentDate = todayStr();
+      state.viewPinned = false;
+      if (!state.genSkip) state.genSkip = {};
+      if (!state.plans) state.plans = {};
+      if (!state.notified) state.notified = {};
+      // 本地已在 genSkip 标记“删除不再生成”的，保留；已本地提醒过的也保留，避免重复打扰
+      state.genSkip = Object.assign({}, backup.genSkip || {}, state.genSkip || {});
+      state.notified = Object.assign({}, backup.notified || {}, state.notified || {});
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      pruneTasks(); backfillWeek(); render(); checkReminders();
+      toast('已从云端同步最新数据');
+    } else {
+      // 本地为最新（或云端为空），上传本地
+      state.cloudT = Date.now();
+      await pushRemote();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (remote) toast('本地数据已同步到云端'); else toast('已同步到云端');
+    }
+    cloudReady = true;
+    setSyncStatus('ok');
+  } catch (e) {
+    cloudReady = true; // 离线时也要放行后续本地改动，尽力而为
+    setSyncStatus('error');
+    toast('云端同步失败，请检查网络');
+  }
+}
+
+// 节次对应时间（按你学校的校历）
+const PERIOD_TIMES = {
+  '1':   ['08:30','09:15'],
+  '2':   ['09:20','10:05'],
+  '1-2': ['08:30','10:05'],
+  '3':   ['10:25','11:10'],
+  '4':   ['11:15','12:00'],
+  '3-4': ['10:25','12:00'],
+  '5':   ['13:30','14:15'],
+  '6':   ['14:20','15:05'],
+  '5-6': ['13:30','15:05'],
+  '7':   ['15:25','16:10'],
+  '8':   ['16:15','17:00'],
+  '7-8': ['15:25','17:00'],
+  '9':   ['17:05','17:50'],
+  '10':  ['18:30','19:15'],
+  '11':  ['19:20','20:05'],
+  '10-11': ['18:30','20:05'],
+  '12':  ['20:15','21:00'],
+  '13':  ['21:05','21:50'],
+  '12-13': ['20:15','21:50'],
+  '10-13': ['18:30','21:50'],
+};
+
+// 周数字符串解析，如 "第2-5周,第7-18周" -> [2,3,4,5,7,8,...,18]
+function parseWeeks(str) {
+  const weeks = new Set();
+  str.split(/[,，]/).forEach(part => {
+    const m = part.match(/(\d+)(?:-(\d+))?/);
+    if (!m) return;
+    const a = parseInt(m[1]);
+    const b = m[2] ? parseInt(m[2]) : a;
+    for (let w = a; w <= b; w++) weeks.add(w);
+  });
+  return [...weeks];
+}
+
+const W = parseWeeks; // 简写
+
+const defaultState = () => ({
+  week1Start: '2026-08-31',  // 第1周周一（9月7日为第2周）
+  courses: [
+    // 数学类：作业 + 复习
+    { id: 'c1', name: '微积分I-B',   short: '微积分', color: '#60a5fa', teacher: '', room: '教三楼203', category: 'math',
+      slots: [
+        { day: 2, period: '3-4',   weeks: W('第2-5周,第7-18周') },
+        { day: 4, period: '3-4',   weeks: W('第2-18周') },
+        { day: 7, period: '3-4',   weeks: W('第3周') },
+      ]},
+    { id: 'c2', name: '线性代数I-B', short: '线代',   color: '#f472b6', teacher: '', room: '教三楼207', category: 'math',
+      slots: [
+        { day: 1, period: '1-2',   weeks: W('第2-18周') },
+        { day: 3, period: '1-2',   weeks: W('第2-5周,第7-18周') },
+        { day: 6, period: '1-2',   weeks: W('第6周') },
+      ]},
+    // 物理类：作业 + 复习
+    { id: 'c3', name: '力学',        short: '力学',   color: '#a78bfa', teacher: '', room: '教三楼303', category: 'physics',
+      slots: [
+        { day: 2, period: '5-6',   weeks: W('第2-5周,第7-18周') },
+        { day: 4, period: '5-6',   weeks: W('第2-18周') },
+        { day: 7, period: '5-6',   weeks: W('第3周') },
+      ]},
+    // 英语类：仅作业
+    { id: 'c4', name: '大学英语I',   short: '英语',   color: '#fbbf24', teacher: '', room: '教三楼519', category: 'english',
+      slots: [
+        { day: 3, period: '3-4',   weeks: W('第2-5周,第7-17周') },
+        { day: 6, period: '3-4',   weeks: W('第6周') },
+      ]},
+    // 人文类：仅作业
+    { id: 'c5', name: '大学写作',     short: '写作',   color: '#34d399', teacher: '', room: '教三楼419', category: 'humanities',
+      slots: [
+        { day: 2, period: '1-2',   weeks: W('第2-5周,第7-16周') },
+        { day: 7, period: '1-2',   weeks: W('第3周') },
+      ]},
+    { id: 'c6', name: '中国近现代史纲要', short: '史纲', color: '#22d3ee', teacher: '', room: '教三楼304', category: 'humanities',
+      slots: [
+        { day: 4, period: '12-13', weeks: W('第2-3周,第6-13周') },
+        { day: 5, period: '3-4',   weeks: W('第2-3周,第6-17周') },
+      ]},
+    { id: 'c7', name: '知识产权法',   short: '知产',   color: '#fb7185', teacher: '', room: '教一楼215', category: 'humanities',
+      slots: [
+        { day: 1, period: '7-8',   weeks: W('第2-17周') },
+      ]},
+    { id: 'c8', name: '习近平新时代中国特色社会主义思想概论', short: '习概', color: '#f97316', teacher: '', room: '教三楼308', category: 'humanities',
+      slots: [
+        { day: 1, period: '10-13', weeks: W('第3周,第7周,第10周,第13周') },
+        { day: 2, period: '7-8',   weeks: W('第2-5周,第7-17周') },
+        { day: 7, period: '7-8',   weeks: W('第3周') },
+      ]},
+    { id: 'c9', name: '走近心理学',   short: '心理',   color: '#a3e635', teacher: '', room: '教三楼303', category: 'humanities',
+      slots: [
+        { day: 4, period: '7-8',   weeks: W('第2-18周') },
+      ]},
+    { id: 'c10', name: '形势与政策',  short: '形策',   color: '#94a3b8', teacher: '', room: '东礼堂', category: 'humanities',
+      slots: [
+        { day: 1, period: '10-13', weeks: W('第17-18周') },
+      ]},
+  ],
+  shortTerm: {},   // { 'YYYY-MM-DD': [ {id, courseId, type, title, done} ] }
+  longTerm: [
+    { id: 'lt1', title: '微积分：极限与连续章节习题', courseId: 'c1', due: addDaysStr(7), priority: 'high', done: false },
+    { id: 'lt2', title: '线代：行列式与矩阵运算整理', courseId: 'c2', due: addDaysStr(14), priority: 'med', done: false },
+    { id: 'lt3', title: '力学：质点运动学错题回顾', courseId: 'c3', due: addDaysStr(10), priority: 'med', done: false },
+    { id: 'lt4', title: '英语：四级单词 Unit 1-5', courseId: 'c4', due: addDaysStr(21), priority: 'low', done: false },
+    { id: 'lt5', title: '写作：议论文素材积累', courseId: 'c5', due: addDaysStr(30), priority: 'low', done: false },
+  ],
+  currentDate: todayStr(),
+  viewPinned: false,  // true = 用户手动选过日期，此时不自动跟随系统日期
+  genSkip: {},        // { '日期_课程id': true } 用户删掉的自动任务，不再补生成
+  plans: {},          // { 'YYYY-MM-DD': [ {id, title, done, srcId} ] } 今日计划；srcId 为来源任务id
+  notified: {},       // { '任务id|截止日期': true } 该任务的提醒已发出过，避免重复
+});
+
+let state = load();
+pruneTasks();   // 清理：未来日期的短期任务 + 已关闭自动生成的课程遗留的自动任务
+
+// 保证「短期任务只属于今天及以前」，且只有开启自动生成的课程才有自动任务
+function pruneTasks() {
+  const today = todayStr();
+  const autoIds = new Set(state.courses.filter(c => autoGenOf(c)).map(c => c.id));
+  let removed = 0;
+  Object.keys(state.shortTerm).forEach(d => {
+    if (d > today) { delete state.shortTerm[d]; removed++; return; }
+    const before = state.shortTerm[d].length;
+    state.shortTerm[d] = state.shortTerm[d].filter(t => !(t._auto && !autoIds.has(t.courseId)));
+    removed += before - state.shortTerm[d].length;
+    if (state.shortTerm[d].length === 0) { delete state.shortTerm[d]; removed++; }
+  });
+  if (removed) save();
+  return removed;
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const s = JSON.parse(raw);
+    // 旧版数据（没有 week1Start 或 slots）需重置为新课表
+    if (!s.week1Start || !s.courses?.[0]?.slots) return defaultState();
+    s.selectedCourse = null;    // 每次加载不恢复课程视图
+    s.currentDate = todayStr(); // 关键：日期始终取系统当天，保证每天自动更新
+    s.viewPinned = false;
+    if (!s.genSkip) s.genSkip = {};
+    if (!s.plans) s.plans = {};
+    if (!s.notified) s.notified = {};
+    return s;
+  } catch { return defaultState(); }
+}
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); schedulePush(); }
+
+/* ===================== Utils ===================== */
+function toDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function todayStr() {
+  return toDateStr(new Date());
+}
+function addDaysStr(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return toDateStr(d);
+}
+function weekdayOf(dateStr) {
+  // JS: 0=Sun..6=Sat  ->  1=Mon..7=Sun
+  const d = new Date(dateStr + 'T00:00:00');
+  const j = d.getDay();
+  return j === 0 ? 7 : j;
+}
+function uid() { return Math.random().toString(36).slice(2, 9); }
+function courseById(id) { return state.courses.find(c => c.id === id); }
+function fmtDateCN(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const wd = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+  return `${d.getMonth()+1}月${d.getDate()}日 · ${wd}`;
+}
+// 根据日期计算教学周次（week1Start 为第1周周一）
+function weekOf(dateStr) {
+  const start = new Date(state.week1Start + 'T00:00:00');
+  const cur = new Date(dateStr + 'T00:00:00');
+  const diff = Math.floor((cur - start) / 86400000);
+  return Math.floor(diff / 7) + 1;
+}
+// 获取某天有课的课程（考虑周次），返回 [{course, slot, start, end}]
+function classesOnDay(dateStr) {
+  const wd = weekdayOf(dateStr);
+  const wk = weekOf(dateStr);
+  const result = [];
+  state.courses.forEach(c => {
+    c.slots.forEach(slot => {
+      if (slot.day === wd && slot.weeks.includes(wk)) {
+        const [start, end] = PERIOD_TIMES[slot.period] || ['00:00','00:00'];
+        result.push({ course: c, slot, start, end });
+      }
+    });
+  });
+  result.sort((a, b) => a.start.localeCompare(b.start));
+  return result;
+}
+// 判断某门课是否需要复习任务（数学/物理需要，英语/人文不需要）
+function needsReview(course) {
+  return course.category === 'math' || course.category === 'physics';
+}
+// 是否自动生成课后任务：默认只有数学/物理类开启，可在课程管理里逐门覆盖
+function autoGenOf(course) {
+  return typeof course.autoGen === 'boolean'
+    ? course.autoGen
+    : (course.category === 'math' || course.category === 'physics');
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* ===================== Daily generation ===================== */
+// 用户手动删掉某个「课程 + 日期」的自动任务后，记一个标记，之后不再自动补回来
+function genKey(dateStr, courseId) { return dateStr + '_' + courseId; }
+function isGenSkipped(dateStr, courseId) {
+  return !!(state.genSkip && state.genSkip[genKey(dateStr, courseId)]);
+}
+function markGenSkipped(dateStr, courseId) {
+  if (!state.genSkip) state.genSkip = {};
+  state.genSkip[genKey(dateStr, courseId)] = true;
+}
+
+function ensureDayTasks(dateStr) {
+  const classes = classesOnDay(dateStr);
+  const list = state.shortTerm[dateStr] ? [...state.shortTerm[dateStr]] : [];
+  let added = 0;
+  classes.forEach(({ course }) => {
+    if (!autoGenOf(course)) return;                       // 只有开启自动生成的课程才生成
+    if (isGenSkipped(dateStr, course.id)) return;         // 用户删过，不要重新生成
+    const has = list.some(t => t.courseId === course.id && t._auto);
+    if (!has) {
+      list.push({ id: uid(), courseId: course.id, type: 'homework', title: '完成课后作业', done: false, due: dateStr, _auto: true });
+      added++;
+      if (needsReview(course)) {
+        list.push({ id: uid(), courseId: course.id, type: 'review', title: '复习本节课笔记，整理重点', done: false, due: dateStr, _auto: true });
+        added++;
+      }
+    }
+  });
+  // 只有真正生成了任务才落库，避免留下空的日期键
+  if (added) { state.shortTerm[dateStr] = list; save(); }
+}
+
+// 回填本周（周一至当前日期）的任务：即使某天才打开页面，
+// 本周已上过课程的作业/复习也会补上，避免课程视图为空
+function backfillWeek() {
+  const today = todayStr();
+  // 只生成「已经发生过」的日期，避免预览未来日期时凭空造出任务
+  const end = state.currentDate < today ? state.currentDate : today;
+  const d = new Date(end + 'T00:00:00');
+  const wd = d.getDay();                       // 0=周日
+  const offsetToMonday = wd === 0 ? 6 : wd - 1; // 距本周一的天数
+  const monday = new Date(d);
+  monday.setDate(d.getDate() - offsetToMonday);
+  for (let i = 0; i <= offsetToMonday; i++) {
+    const cur = new Date(monday);
+    cur.setDate(monday.getDate() + i);
+    ensureDayTasks(toDateStr(cur));
+  }
+}
+
+// 切换查看的日期；pinned=true 表示用户手动选的日期，之后不再自动跟随系统日期
+function setViewDate(dateStr, pinned) {
+  state.currentDate = dateStr;
+  state.viewPinned = !!pinned;
+  backfillWeek();
+  save();
+  render();
+}
+
+/* ===================== Render ===================== */
+function render() {
+  backfillWeek();
+  renderTopbar();
+  renderSidebar();
+  renderPlan();
+  renderToday();
+  renderSchedule();
+  renderDue();
+  if (state.selectedCourse) renderCourseView(state.selectedCourse);
+}
+
+function renderTopbar() {
+  const isToday = state.currentDate === todayStr();
+  document.getElementById('date-large').textContent = fmtDateCN(state.currentDate);
+  const wk = weekOf(state.currentDate);
+  const classes = classesOnDay(state.currentDate);
+  document.getElementById('date-sub').textContent =
+    (isToday ? '' : '非今天 · ') + `第 ${wk} 教学周 · 共 ${classes.length} 节课 · 课后任务已自动生成`;
+
+  // 同步左下角的日期控件
+  const picker = document.getElementById('date-picker');
+  if (picker) picker.value = state.currentDate;
+  const todayBtn = document.getElementById('today-btn');
+  if (todayBtn) todayBtn.style.display = isToday ? 'none' : '';
+
+  const tasks = state.shortTerm[state.currentDate] || [];
+  const done = tasks.filter(t => t.done).length;
+  const total = tasks.length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('pct-text').textContent = `${done} / ${total}`;
+  document.getElementById('ring-text').textContent = pct + '%';
+  document.getElementById('ring').style.setProperty('--p', pct);
+  document.getElementById('cnt-today').textContent = total;
+  document.getElementById('cnt-due').textContent = collectAllTasks().filter(t => !t.done).length;
+}
+
+function renderSidebar() {
+  const rail = document.getElementById('courses-rail');
+  rail.innerHTML = state.courses.map(c => {
+    const active = state.selectedCourse === c.id;
+    return `
+    <div class="course-chip ${active?'active':''}" title="${c.name}" onclick="filterByCourse('${c.id}')">
+      <span class="swatch" style="background:${c.color}"></span>
+      <span class="cshort">${c.short}</span>
+    </div>`;
+  }).join('');
+}
+
+// 今日概览里的单个块（课程 / 学生工作）
+function dayBlockHTML(c, timeLabel, tasks) {
+  const cTasks = tasks.filter(t => t.courseId === c.id);
+  const meta = isWork(c)
+    ? `<span>学生工作</span>`
+    : `<span>📍 ${c.room}</span>${c.teacher ? `<span>👤 ${c.teacher}</span>` : ''}`;
+  return `
+    <div class="class-block" data-class-key="${state.currentDate}_${c.id}">
+      <div class="class-head">
+        <span class="stripe" style="background:${c.color}"></span>
+        ${timeLabel ? `<span class="ctime">${timeLabel}</span>` : ''}
+        <span class="cname">${c.name}</span>
+        <span class="cmeta">${meta}</span>
+      </div>
+      <div class="class-tasks">
+        ${cTasks.map(t => taskRowHTML(t)).join('')}
+        <div class="add-task-row" onclick="addShortTerm('${c.id}')">
+          <span class="plus">+</span> 添加任务
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderToday() {
+  const classes = classesOnDay(state.currentDate);
+  const tasks = state.shortTerm[state.currentDate] || [];
+
+  // 今天有任务、但当天没课的单位（例如学生工作）也单独成块显示
+  const shownIds = new Set(classes.map(x => x.course.id));
+  const extras = [];
+  tasks.forEach(t => {
+    if (shownIds.has(t.courseId)) return;
+    const c = courseById(t.courseId);
+    if (c && !extras.some(x => x.id === c.id)) extras.push(c);
+  });
+
+  const blocks = classes
+    .map(({ course: c, start, end }) => dayBlockHTML(c, `${start} – ${end}`, tasks))
+    .concat(extras.map(c => dayBlockHTML(c, '', tasks)));
+
+  document.getElementById('day-classes').innerHTML = blocks.length
+    ? blocks.join('')
+    : `<div class="empty-day">今天没有课，也没有任务 ☕</div>`;
+
+  // stats
+  document.getElementById('st-classes').textContent = classes.length;
+  document.getElementById('st-tasks').textContent = tasks.length;
+  const done = tasks.filter(t=>t.done).length;
+  document.getElementById('st-done').textContent = done;
+  document.getElementById('st-left').textContent = tasks.length - done;
+}
+
+function dueClass(due) {
+  const today = state.currentDate;
+  const diff = (new Date(due) - new Date(today)) / 86400000;
+  if (diff < 0) return 'overdue';
+  if (diff <= 3) return 'soon';
+  return '';
+}
+
+// 任务类型标签：作业 / 复习 / 任务（学生工作用）
+const TASK_TYPES = {
+  homework: { label: '作业', cls: 'tag-hw' },
+  review:   { label: '复习', cls: 'tag-review' },
+  task:     { label: '任务', cls: 'tag-task' },
+};
+function typeTagHTML(type) {
+  const t = TASK_TYPES[type] || TASK_TYPES.homework;
+  return `<span class="task-tag ${t.cls}">${t.label}</span>`;
+}
+
+// 备注行（ph 传入时，空白状态会在悬停时显示浅色提示）
+function noteHTML(kind, id, note, ph) {
+  return `<div class="task-note ${note ? '' : 'empty'}"${ph ? ` data-ph="${ph}"` : ''} contenteditable="true" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}" onblur="commitNote(this,'${kind}','${id}')">${note || ''}</div>`;
+}
+
+function taskRowHTML(t) {
+  const due = t.due || state.currentDate;
+  const cls = dueClass(due);
+  return `
+    <div class="task-row ${t.done?'done':''}">
+      <div class="task-line">
+        <span class="plan-grip" title="按住拖到「今日计划」" onmousedown="event.stopPropagation();startPlanDrag(event,'${t.id}')">⠿</span>
+        <span class="chk ${t.done?'checked':''}" onclick="toggleShortTerm('${t.id}')"></span>
+        <span class="task-title" contenteditable="true" onblur="renameShortTerm('${t.id}', this.textContent)">${t.title}</span>
+        ${typeTagHTML(t.type)}
+        ${remindHTML(t.id, t.remind)}
+        <span class="task-due ${cls}" title="点击修改截止日期" onclick="openDatePicker(this, event)">
+          <input type="date" value="${due}" onchange="setShortTermDue('${t.id}', this.value)"/>
+        </span>
+        <span class="task-del" onclick="delShortTerm('${t.id}')">×</span>
+      </div>
+      ${noteHTML('short', t.id, t.note, '添加备注…')}
+    </div>`;
+}
+
+function renderSchedule() {
+  const grid = document.getElementById('week-grid');
+  const dayNames = ['周一','周二','周三','周四','周五','周六','周日'];
+  const wk = weekOf(state.currentDate);
+  const todayWd = weekdayOf(state.currentDate);
+
+  // 本周每一列对应的真实日期，供点击跳转使用
+  const base = new Date(state.currentDate + 'T00:00:00');
+  const baseWd = base.getDay();
+  const monday = new Date(base);
+  monday.setDate(base.getDate() - (baseWd === 0 ? 6 : baseWd - 1));
+  const dayDates = {};
+  for (let d = 1; d <= 7; d++) {
+    const cur = new Date(monday);
+    cur.setDate(monday.getDate() + d - 1);
+    dayDates[d] = toDateStr(cur);
+  }
+
+  // 收集本周每天的课程 {course, start, end}
+  const byDay = {};
+  for (let d = 1; d <= 7; d++) byDay[d] = [];
+  state.courses.forEach(c => {
+    c.slots.forEach(slot => {
+      if (slot.weeks.includes(wk) && byDay[slot.day]) {
+        const [start, end] = PERIOD_TIMES[slot.period] || ['00:00','00:00'];
+        byDay[slot.day].push({ course: c, start, end });
+      }
+    });
+  });
+  Object.values(byDay).forEach(arr => arr.sort((a,b)=>a.start.localeCompare(b.start)));
+
+  // 时间行（取所有时间段的起始时间，去重排序）
+  const timeRows = [...new Set(Object.values(PERIOD_TIMES).map(p=>p[0]))].sort();
+
+  let html = `<div class="wk-head" style="font-size:11px">第${wk}周</div>`;
+  for (let i=0;i<7;i++) {
+    html += `<div class="wk-head ${i+1===todayWd?'today':''}">${dayNames[i]}</div>`;
+  }
+  timeRows.forEach(t => {
+    html += `<div class="wk-time">${t}</div>`;
+    for (let d=1; d<=7; d++) {
+      const cells = byDay[d].filter(x => x.start === t);
+      html += `<div class="wk-cell ${d===todayWd?'today':''}">`;
+      cells.forEach(({course, start, end}) => {
+        html += `<div class="wk-slot" style="border-left-color:${course.color}" title="查看这节课的任务" onclick="gotoClassTasks('${dayDates[d]}','${course.id}')">
+          <div class="ws-time">${start}–${end}</div>
+          <div class="ws-name">${course.short}</div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+  });
+  grid.innerHTML = html;
+}
+
+// 汇总所有任务（短期 + 长期），供「即将到期」使用
+function collectAllTasks() {
+  const list = [];
+  Object.entries(state.shortTerm).forEach(([date, arr]) => {
+    arr.forEach(t => list.push({ ...t, kind: 'short', date }));
+  });
+  state.longTerm.forEach(l => list.push({ ...l, kind: 'long' }));
+  return list;
+}
+
+// 按 id 定位任意任务（短期或长期），返回 { t, kind, date }
+function findAnyTask(id) {
+  const st = Object.entries(state.shortTerm);
+  for (let i = 0; i < st.length; i++) {
+    const [date, arr] = st[i];
+    const found = arr.find(x => x.id === id);
+    if (found) return { t: found, kind: 'short', date };
+  }
+  const lt = state.longTerm.find(x => x.id === id);
+  if (lt) return { t: lt, kind: 'long' };
+  return null;
+}
+
+/* ===================== 提醒 / 闹钟 ===================== */
+const REMIND_OPTS = [null, 0, 1, 3];          // 无 / 截止当天 / 提前1天 / 提前3天
+const REMIND_LABEL = { 0: '当天', 1: '提前1天', 3: '提前3天' };
+// 提醒按钮：点击在「无 → 当天 → 提前1天 → 提前3天」间循环
+function remindHTML(id, remind) {
+  const active = remind != null;
+  return `<button class="remind-btn ${active ? 'on' : ''}" title="截止提醒：${active ? REMIND_LABEL[remind] : '未设置'}（点击切换）" onclick="cycleRemind('${id}')">${active ? `<span class="rb-label">${REMIND_LABEL[remind]}</span>` : ''}⏰</button>`;
+}
+function cycleRemind(id) {
+  const r = findAnyTask(id);
+  if (!r) return;
+  const cur = REMIND_OPTS.indexOf(r.t.remind ?? null);
+  const next = REMIND_OPTS[(cur + 1) % REMIND_OPTS.length];
+  r.t.remind = next;
+  if (next != null && 'Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+  save(); render();
+}
+// 遍历所有任务，检查是否该发提醒（浏览器通知）
+function checkReminders() {
+  if (!('Notification' in window)) return;
+  const today = todayStr();
+  const isDueToday = t => !t.due || t.due === today;
+  const dayDiff = due => !due ? 0 : Math.round((new Date(due + 'T00:00:00') - new Date(today + 'T00:00:00')) / 86400000);
+  collectAllTasks().forEach(t => {
+    if (t.done) return;                       // 已完成不提醒
+    if (t.remind == null) return;             // 未设置提醒
+    const diff = dayDiff(t.due);
+    const fire = t.remind === 0 ? isDueToday(t) : diff === t.remind; // 提前N天或当天
+    if (!fire) return;
+    // 用「任务id+截止日期」去重，避免每次刷新都重复弹
+    const k = `${t.id}|${t.due}`;
+    if (state.notified[k]) return;
+    state.notified[k] = true; save();
+    const c = t.courseId ? courseById(t.courseId) : null;
+    const tag = c ? `【${c.short}】` : '';
+    const body = `${tag}「${t.title}」今天到期,别忘了处理`;
+    if (Notification.permission === 'granted') {
+      try { new Notification('📌 任务截止提醒', { body }); return; } catch (e) {}
+    }
+    toast('⏰ ' + body);
+  });
+}
+
+/* ===================== 今日计划（拖动待办 + 新建 + 打勾） ===================== */
+// 手动拖拽（不用浏览器原生 DnD，避免 contenteditable 抢占拖动）
+function startPlanDrag(ev, id) {
+  ev.preventDefault();
+  // 创建跟随鼠标的幽灵元素
+  const ghost = document.createElement('div');
+  ghost.className = 'plan-ghost';
+  ghost.textContent = '＋';
+  ghost.style.left = (ev.clientX + 8) + 'px';
+  ghost.style.top = (ev.clientY + 8) + 'px';
+  document.body.appendChild(ghost);
+
+  const panel = document.getElementById('plan-panel');
+  const move = e => {
+    ghost.style.left = (e.clientX + 8) + 'px';
+    ghost.style.top = (e.clientY + 8) + 'px';
+    // 进入 / 离开计划面板时高亮
+    const r = panel.getBoundingClientRect();
+    panel.classList.toggle('dragover', e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom);
+  };
+  const up = e => {
+    const r = panel.getBoundingClientRect();
+    const dropped = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    ghost.remove();
+    panel.classList.remove('dragover');
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('mouseup', up);
+    if (dropped) addPlanFromTask(id);
+  };
+  document.addEventListener('mousemove', move);
+  document.addEventListener('mouseup', up);
+}
+function planOf() { return state.plans[state.currentDate] || (state.plans[state.currentDate] = []); }
+function renderPlan() {
+  const el = document.getElementById('plan-list');
+  if (!el) return;
+  const list = planOf();
+  const done = list.filter(p => p.done).length;
+  document.getElementById('plan-count').textContent = `${done}/${list.length}`;
+  el.innerHTML = list.length ? list.map(p => `
+    <div class="plan-row">
+      <span class="chk ${p.done ? 'checked' : ''}" onclick="togglePlan('${p.id}')"></span>
+      <span class="plan-title ${p.done ? 'done' : ''}" contenteditable="true" onblur="renamePlan('${p.id}', this.textContent)">${p.title}</span>
+      <span class="plan-del" title="移出今日计划" onclick="delPlan('${p.id}')">×</span>
+    </div>`).join('')
+    : `<div class="plan-hint">按住任务左侧 <b style="color:var(--accent-2)">⠿</b> 拖到这里，或点下方输入框，给自己定个今日计划 📌</div>`;
+}
+function addPlan() {
+  const inp = document.getElementById('plan-input');
+  const v = inp.value.trim();
+  if (!v) { toast('请输入内容'); return; }
+  planOf().push({ id: uid(), title: v, done: false });
+  inp.value = '';
+  save(); render(); toast('已加入今日计划');
+}
+function addPlanFromTask(id) {
+  const r = findAnyTask(id);
+  if (!r) return;
+  planOf().push({ id: uid(), title: r.t.title, done: r.t.done, srcId: id });
+  save(); render(); toast('已加入今日计划');
+}
+function togglePlan(id) {
+  const p = planOf().find(x => x.id === id);
+  if (!p) return;
+  p.done = !p.done;
+  save(); render();
+  // 若来自某个任务,同步勾选状态,保持一处管理
+  if (p.srcId) { const r = findAnyTask(p.srcId); if (r) r.t.done = p.done; save(); }
+}
+function renamePlan(id, text) {
+  text = text.trim();
+  const p = planOf().find(x => x.id === id);
+  if (p && text) p.title = text;
+  save();
+}
+function delPlan(id) {
+  state.plans[state.currentDate] = planOf().filter(x => x.id !== id);
+  save(); render();
+}
+// 「已完成」归档列表：展开 / 收起的切换
+function toggleDoneArchive() {
+  const list = document.getElementById('archive-done');
+  if (!list) return;
+  const closed = list.style.display === 'none';
+  list.style.display = closed ? 'block' : 'none';
+  document.querySelectorAll('.archive-caret').forEach(c => c.textContent = closed ? '▾' : '▸');
+  document.querySelectorAll('.archive-tip').forEach(t => t.textContent = closed ? '' : '点击收起');
+}
+
+function dueRowHTML(t) {
+  const c = t.courseId ? courseById(t.courseId) : null;
+  const due = t.due || todayStr();
+  const cls = dueClass(due);
+  const tag = t.kind === 'short'
+    ? typeTagHTML(t.type)
+    : `<span class="task-tag tag-long">长期</span>`;
+  const diff = Math.round((new Date(due + 'T00:00:00') - new Date(todayStr() + 'T00:00:00')) / 86400000);
+  let days;
+  if (diff < 0)        days = `<span class="due-days overdue">逾期 ${-diff} 天</span>`;
+  else if (diff === 0) days = `<span class="due-days today">今天</span>`;
+  else if (diff <= 3)  days = `<span class="due-days soon">${diff} 天后</span>`;
+  else                 days = `<span class="due-days">${diff} 天后</span>`;
+  return `
+    <div class="due-row ${t.done ? 'done' : ''}">
+      <div class="due-line">
+        <span class="plan-grip" title="按住拖到「今日计划」" onmousedown="event.stopPropagation();startPlanDrag(event,'${t.id}')">⠿</span>
+        <span class="chk ${t.done ? 'checked' : ''}" onclick="toggleAnyTask('${t.kind}','${t.id}')"></span>
+        ${t.kind === 'long' && t.priority ? `<span class="pri-dot pri-${t.priority}"></span>` : ''}
+        <span class="due-title" contenteditable="true" onblur="renameAnyTask('${t.kind}','${t.id}', this.textContent)">${t.title}</span>
+        ${c ? `<span class="lt-course-tag" style="background:${c.color}22;color:${c.color}">${c.short}</span>` : ''}
+        ${tag}
+        ${remindHTML(t.id, t.remind)}
+        ${days}
+        <span class="task-due ${cls}" title="点击修改截止日期" onclick="openDatePicker(this, event)">
+          <input type="date" value="${due}" onchange="setAnyDue('${t.kind}','${t.id}', this.value)"/>
+        </span>
+        <span class="task-del" style="opacity:1" onclick="delAnyTask('${t.kind}','${t.id}')">×</span>
+      </div>
+      ${noteHTML(t.kind, t.id, t.note, '')}
+    </div>`;
+}
+
+function renderDue() {
+  const el = document.getElementById('due-list');
+  if (!el) return;
+  const today = todayStr();
+  const soon = addDaysStr(3);
+
+  // 越紧急越靠上：先按截止日期，再按优先级
+  const byDue = (a, b) => {
+    const da = a.due || '9999-99-99', db = b.due || '9999-99-99';
+    if (da !== db) return da.localeCompare(db);
+    const rank = { high: 0, med: 1, low: 2 };
+    return (rank[a.priority] ?? 1) - (rank[b.priority] ?? 1);
+  };
+
+  const all = collectAllTasks();
+  if (all.length === 0) { el.innerHTML = `<div class="due-empty">还没有任何任务</div>`; return; }
+  const pending = all.filter(t => !t.done).sort(byDue);
+  const done = all.filter(t => t.done).sort(byDue);
+
+  const bands = [
+    { label: '已逾期',   cls: 'overdue', test: t => t.due && t.due < today },
+    { label: '今天到期', cls: 'today',   test: t => !t.due || t.due === today },
+    { label: '3 天内',   cls: 'soon',    test: t => t.due > today && t.due <= soon },
+    { label: '更远',     cls: '',        test: t => t.due > soon },
+  ];
+
+  let html = bands.map(b => {
+    const items = pending.filter(b.test);
+    if (!items.length) return '';
+    return `
+      <div class="due-group">
+        <div class="due-group-head">
+          <span class="dg-name ${b.cls}">${b.label}</span>
+          <span class="dg-count">${items.length}</span>
+        </div>
+        <div class="due-list">${items.map(dueRowHTML).join('')}</div>
+      </div>`;
+  }).join('');
+
+  if (done.length) {
+    html += `
+      <div class="due-group">
+        <div class="due-group-head archive-head" onclick="toggleDoneArchive()">
+          <span class="archive-caret">▸</span>
+          <span class="dg-name">已完成</span>
+          <span class="dg-count">${done.length}</span>
+          <span class="archive-tip">点击展开</span>
+        </div>
+        <div class="due-list" id="archive-done" style="display:none">${done.map(dueRowHTML).join('')}</div>
+      </div>`;
+  }
+
+  el.innerHTML = html || `<div class="due-empty">所有任务都完成了 🎉</div>`;
+}
+
+/* 「即将到期」里对两种任务统一操作 */
+function toggleAnyTask(kind, id) {
+  if (kind === 'long') toggleLongTerm(id); else toggleShortTerm(id);
+}
+function renameAnyTask(kind, id, text) {
+  if (kind === 'long') renameLongTerm(id, text); else renameShortTerm(id, text);
+}
+function setAnyDue(kind, id, due) {
+  if (kind === 'long') setLongTermDue(id, due); else setShortTermDue(id, due);
+}
+function delAnyTask(kind, id) {
+  if (kind === 'long') delLongTerm(id); else delShortTerm(id);
+}
+
+/* ===================== Actions ===================== */
+function toggleShortTerm(id) {
+  Object.values(state.shortTerm).forEach(arr => {
+    const t = arr.find(x => x.id === id);
+    if (t) t.done = !t.done;
+  });
+  save(); render();
+}
+function renameShortTerm(id, text) {
+  text = text.trim();
+  Object.values(state.shortTerm).forEach(arr => {
+    const t = arr.find(x => x.id === id);
+    if (t && text) t.title = text;
+  });
+  save();
+}
+function setShortTermDue(id, due) {
+  Object.values(state.shortTerm).forEach(arr => {
+    const t = arr.find(x => x.id === id);
+    if (t) t.due = due;
+  });
+  save(); render();
+}
+// 点击日期胶囊任意位置都打开原生日期选择器（点在输入框本身则交给原生行为）
+function openDatePicker(el, ev) {
+  const input = el.querySelector('input[type="date"]');
+  if (!input) return;
+  if (ev && ev.target === input) return;
+  try {
+    if (input.showPicker) input.showPicker();
+    else { input.focus(); input.click(); }
+  } catch (e) { input.focus(); }
+}
+
+/* ===================== 任务备注 ===================== */
+function setShortTermNote(id, text) {
+  Object.values(state.shortTerm).forEach(arr => {
+    const t = arr.find(x => x.id === id);
+    if (t) { if (text) t.note = text; else delete t.note; }
+  });
+  save();
+}
+function setLongTermNote(id, text) {
+  const l = state.longTerm.find(x => x.id === id);
+  if (l) { if (text) l.note = text; else delete l.note; }
+  save();
+}
+function setAnyNote(kind, id, text) {
+  if (kind === 'long') setLongTermNote(id, text); else setShortTermNote(id, text);
+}
+// 失焦时提交备注内容，并同步「空 / 非空」状态
+function commitNote(el, kind, id) {
+  const v = (el.textContent || '').trim();
+  el.textContent = v;
+  el.classList.toggle('empty', !v);
+  setAnyNote(kind, id, v);
+}
+function delShortTerm(id) {
+  Object.keys(state.shortTerm).forEach(d => {
+    const arr = state.shortTerm[d];
+    const i = arr.findIndex(x => x.id === id);
+    if (i < 0) return;
+    const t = arr[i];
+    // 删的是自动生成的任务 → 记下标记，避免重绘时又被补回来
+    if (t._auto && t.courseId) markGenSkipped(d, t.courseId);
+    arr.splice(i, 1);
+  });
+  save(); render();
+}
+function addShortTerm(courseId) {
+  if (state.currentDate > todayStr()) { toast('未来日期不能添加课后任务'); return; }
+  const title = prompt('任务内容：');
+  if (!title) return;
+  const course = courseById(courseId);
+  // 学生工作没有「作业/复习」之分，统一记为「任务」
+  const type = isWork(course)
+    ? 'task'
+    : (confirm('点击「确定」= 作业，「取消」= 复习') ? 'homework' : 'review');
+  if (!state.shortTerm[state.currentDate]) state.shortTerm[state.currentDate] = [];
+  state.shortTerm[state.currentDate].push({ id: uid(), courseId, type, title, done: false, due: state.currentDate });
+  save(); render();
+}
+
+function toggleLongTerm(id) {
+  const l = state.longTerm.find(x => x.id === id);
+  if (l) l.done = !l.done;
+  save(); render();
+}
+function renameLongTerm(id, text) {
+  text = text.trim();
+  const l = state.longTerm.find(x => x.id === id);
+  if (l && text) l.title = text;
+  save();
+}
+function setLongTermDue(id, due) {
+  const l = state.longTerm.find(x => x.id === id);
+  if (l) l.due = due;
+  save(); render();
+}
+function delLongTerm(id) {
+  state.longTerm = state.longTerm.filter(x => x.id !== id);
+  save(); render();
+}
+/* ===================== Tabs ===================== */
+function switchTab(name) {
+  state.selectedCourse = null;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+}
+document.getElementById('tabs').addEventListener('click', e => {
+  const b = e.target.closest('.tab');
+  if (b) {
+    switchTab(b.dataset.tab);
+    // 「今日概览」tab 始终回到今天，避免被课表跳转的日期卡住
+    if (b.dataset.tab === 'today') setViewDate(todayStr(), false);
+  }
+});
+function filterByCourse(id) {
+  state.selectedCourse = id;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-course').classList.add('active');
+  renderSidebar();
+  renderCourseView(id);
+}
+
+// 从课表点某节课 → 跳到那一天的该节课任务，并高亮该课程块
+function gotoClassTasks(dateStr, courseId) {
+  const isFuture = dateStr > todayStr();
+  setViewDate(dateStr, dateStr !== todayStr());
+  switchTab('today');
+  requestAnimationFrame(() => {
+    const el = document.querySelector(`[data-class-key="${dateStr}_${courseId}"]`);
+    if (!el) { toast('这一天没有这节课'); return; }
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.remove('flash');
+    void el.offsetWidth;                 // 强制重排，让动画能重复触发
+    el.classList.add('flash');
+    setTimeout(() => el.classList.remove('flash'), 1600);
+    if (isFuture) toast('这节课还没上，暂无课后任务');
+  });
+}
+
+/* ===================== Course View ===================== */
+const CAT_LABELS = { math: '数学', physics: '物理', english: '英语', humanities: '人文', work: '学生工作' };
+// 学生工作：没有教室、没有上课时间，也不参与自动生成
+function isWork(c) { return !!c && c.category === 'work'; }
+
+function renderCourseView(courseId) {
+  const c = courseById(courseId);
+  if (!c) return;
+  const container = document.getElementById('course-detail');
+
+  // 收集该课程所有短期任务，按日期分组
+  const today = todayStr();
+  const dates = Object.keys(state.shortTerm).filter(d => d <= today).sort().reverse();
+  const shortTasks = [];
+  dates.forEach(d => {
+    const ts = state.shortTerm[d].filter(t => t.courseId === courseId);
+    if (ts.length) shortTasks.push({ date: d, tasks: ts });
+  });
+  const shortDone = shortTasks.flatMap(g => g.tasks).filter(t => t.done).length;
+  const shortTotal = shortTasks.flatMap(g => g.tasks).length;
+
+  // 该课程的长期任务
+  const ltTasks = state.longTerm.filter(l => l.courseId === courseId);
+  const ltDone = ltTasks.filter(l => l.done).length;
+
+  const catLabel = CAT_LABELS[c.category] || '其他';
+  const metaHTML = isWork(c)
+    ? `<span>手动添加任务</span>`
+    : `${c.room ? `<span>📍 ${c.room}</span>` : ''}${c.teacher ? `<span>👤 ${c.teacher}</span>` : ''}<span>${c.slots.length} 个时间段</span>`;
+  const modeHTML = isWork(c) ? '手动添加' : (needsReview(c) ? '作业 + 复习' : '仅作业');
+
+  container.innerHTML = `
+    <div class="course-header">
+      <div class="ch-stripe" style="background:${c.color}"></div>
+      <div class="ch-info">
+        <div class="ch-name">${c.name}</div>
+        <div class="ch-meta">${metaHTML}</div>
+      </div>
+      <span class="ch-cat">${isWork(c) ? '学生工作' : catLabel + '类'}</span>
+      <span class="ch-cat">${modeHTML}</span>
+    </div>
+
+    <div class="course-task-section">
+      <div class="section-title">短期任务 · ${shortDone}/${shortTotal} 已完成</div>
+      ${shortTasks.length === 0 ? `<div class="empty-day">${isWork(c) ? '暂无任务，在下方手动添加。' : '暂无短期任务。上完课后会自动生成。'}</div>` :
+        shortTasks.map(g => `
+          <div class="date-group">
+            <div class="date-group-head">${fmtDateCN(g.date)}</div>
+            <div class="class-tasks">
+              ${g.tasks.map(t => taskRowHTML(t)).join('')}
+            </div>
+          </div>
+        `).join('')
+      }
+      <div class="course-add-row">
+        <input type="text" id="cv-st-input" placeholder="添加短期任务名称…" />
+        <select id="cv-st-type">
+          ${isWork(c)
+            ? '<option value="task">任务</option>'
+            : `<option value="homework">作业</option>${needsReview(c) ? '<option value="review">复习</option>' : ''}`}
+        </select>
+        <input type="date" id="cv-st-due" value="${state.currentDate}" />
+        <button class="btn btn-primary" onclick="addCourseShortTerm('${courseId}')">添加</button>
+      </div>
+    </div>
+
+    <div class="course-task-section">
+      <div class="section-title">长期任务 · ${ltDone}/${ltTasks.length} 已完成</div>
+      ${ltTasks.length === 0 ? `<div class="empty-day">暂无长期任务。</div>` : `
+        <div class="lt-list">
+          ${ltTasks.map(l => {
+            const cls = dueClass(l.due);
+            return `
+              <div class="lt-row ${l.done?'done':''}">
+                <div class="lt-line">
+                  <span class="chk ${l.done?'checked':''}" onclick="toggleLongTerm('${l.id}')"></span>
+                  <span class="pri-dot pri-${l.priority}"></span>
+                  <span class="lt-title" contenteditable="true" onblur="renameLongTerm('${l.id}', this.textContent)">${l.title}</span>
+                  ${remindHTML(l.id, l.remind)}
+                  <span class="lt-due ${cls}" title="点击修改截止日期" onclick="openDatePicker(this, event)">
+                    <input type="date" value="${l.due}" onchange="setLongTermDue('${l.id}', this.value)"/>
+                  </span>
+                  <span class="task-del" onclick="delLongTerm('${l.id}')" style="opacity:1">×</span>
+                </div>
+                ${noteHTML('long', l.id, l.note, '添加备注…')}
+              </div>`;
+          }).join('')}
+        </div>
+      `}
+      <div class="course-add-row">
+        <input type="text" id="cv-lt-input" placeholder="添加长期任务名称…" onkeydown="if(event.key==='Enter') addCourseLongTerm('${courseId}')" />
+        <select id="cv-lt-pri">
+          <option value="low">低优先</option>
+          <option value="med" selected>中优先</option>
+          <option value="high">高优先</option>
+        </select>
+        <input type="date" id="cv-lt-due" value="${addDaysStr(7)}" />
+        <button class="btn btn-primary" onclick="addCourseLongTerm('${courseId}')">添加</button>
+      </div>
+    </div>
+  `;
+}
+
+function addCourseShortTerm(courseId) {
+  if (state.currentDate > todayStr()) { toast('未来日期不能添加课后任务'); return; }
+  const input = document.getElementById('cv-st-input');
+  const type = document.getElementById('cv-st-type').value;
+  const due = document.getElementById('cv-st-due').value || state.currentDate;
+  const title = input.value.trim();
+  if (!title) { toast('请输入任务名称'); return; }
+  if (!state.shortTerm[state.currentDate]) state.shortTerm[state.currentDate] = [];
+  state.shortTerm[state.currentDate].push({ id: uid(), courseId, type, title, done: false, due });
+  save();
+  render();
+  toast('已添加短期任务');
+}
+
+function addCourseLongTerm(courseId) {
+  const input = document.getElementById('cv-lt-input');
+  const pri = document.getElementById('cv-lt-pri').value;
+  const due = document.getElementById('cv-lt-due').value || addDaysStr(7);
+  const title = input.value.trim();
+  if (!title) { toast('请输入任务名称'); return; }
+  state.longTerm.push({ id: uid(), title, courseId, due, priority: pri, done: false });
+  save();
+  render();
+  toast('已添加长期任务');
+}
+
+/* ===================== Modal (course manage) ===================== */
+const COLORS = ['#60a5fa','#34d399','#fbbf24','#f472b6','#a78bfa','#fb7185','#22d3ee','#a3e635'];
+const DAY_NAMES = ['周一','周二','周三','周四','周五','周六','周日'];
+const PERIOD_OPTIONS = ['1-2','3-4','5-6','7-8','9','10-11','12-13','10-13'];
+const CATEGORY_OPTIONS = [
+  { value: 'math',       label: '数学 · 作业+复习' },
+  { value: 'physics',    label: '物理 · 作业+复习' },
+  { value: 'english',    label: '英语 · 仅作业' },
+  { value: 'humanities', label: '人文 · 仅作业' },
+  { value: 'work',       label: '学生工作 · 手动添加' },
+];
+let editingCourses = [];
+
+function openModal() {
+  editingCourses = JSON.parse(JSON.stringify(state.courses));
+  renderCourseEditor();
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+
+// [2,3,4,5,7,...,18] -> "2-5,7-18"
+function weeksToStr(weeks) {
+  if (!weeks || !weeks.length) return '';
+  const s = [...weeks].sort((a,b)=>a-b);
+  const parts = [];
+  let a = s[0], b = s[0];
+  for (let i = 1; i < s.length; i++) {
+    if (s[i] === b + 1) { b = s[i]; }
+    else { parts.push(a === b ? `${a}` : `${a}-${b}`); a = b = s[i]; }
+  }
+  parts.push(a === b ? `${a}` : `${a}-${b}`);
+  return parts.join(',');
+}
+
+function countCourseTasks(courseId) {
+  const today = todayStr();
+  let n = 0;
+  Object.entries(state.shortTerm).forEach(([d, arr]) => {
+    if (d > today) return;
+    n += arr.filter(t => t.courseId === courseId).length;
+  });
+  n += state.longTerm.filter(l => l.courseId === courseId).length;
+  return n;
+}
+
+function renderCourseEditor() {
+  const el = document.getElementById('course-editor');
+  if (editingCourses.length === 0) {
+    el.innerHTML = `<div style="color:var(--text-3);font-size:13px;padding:14px 0">还没有课程，点下方按钮新增一门。</div>`;
+    return;
+  }
+  el.innerHTML = editingCourses.map((c,i) => `
+    <div class="cec">
+      <div class="cec-head">
+        <span class="swatch" style="width:12px;height:12px;border-radius:3px;background:${c.color}"></span>
+        <input class="cec-input" style="flex:1;min-width:150px" value="${c.name}" placeholder="${isWork(c) ? '学生工作名称' : '课程名称'}" oninput="editingCourses[${i}].name=this.value"/>
+        <input class="cec-input" style="width:78px" value="${c.short||''}" placeholder="简称" oninput="editingCourses[${i}].short=this.value"/>
+        <select class="cec-select" onchange="editingCourses[${i}].category=this.value;renderCourseEditor()">
+          ${CATEGORY_OPTIONS.map(o => `<option value="${o.value}" ${c.category===o.value?'selected':''}>${o.label}</option>`).join('')}
+        </select>
+        ${isWork(c) ? '' : `<input class="cec-input" style="width:104px" value="${c.room||''}" placeholder="教室" oninput="editingCourses[${i}].room=this.value"/>`}
+      </div>
+      <div class="color-row" style="margin-bottom:10px">
+        ${COLORS.map(col => `<span class="color-swatch ${c.color===col?'sel':''}" style="background:${col}" onclick="editingCourses[${i}].color='${col}';renderCourseEditor()"></span>`).join('')}
+      </div>
+      ${isWork(c)
+        ? `<div class="cec-slots"><div class="cec-slots-label">学生工作</div><div style="font-size:12px;color:var(--text-3);padding:2px 0">不需要教室和上课时间，也不会自动生成任务 —— 任务请手动添加</div></div>`
+        : `<label class="cec-toggle">
+        <input type="checkbox" ${autoGenOf(c) ? 'checked' : ''} onchange="editingCourses[${i}].autoGen=this.checked"/>
+        上课后自动生成课后任务${needsReview(c) ? '（作业 + 复习）' : '（仅作业）'}
+      </label>
+      <div class="cec-slots">
+        <div class="cec-slots-label">上课时间（决定什么时候自动生成课后任务）</div>
+        ${(c.slots||[]).length === 0
+          ? `<div style="font-size:12px;color:var(--text-3);padding:2px 0">未设置上课时间，这门课不会自动生成任务</div>`
+          : (c.slots||[]).map((s,j) => `
+            <div class="slot-row">
+              <span class="grow">${DAY_NAMES[s.day-1]} · 第${s.period}节</span>
+              <span class="wk">第 ${weeksToStr(s.weeks)} 周</span>
+              <button class="slot-x" onclick="editingCourses[${i}].slots.splice(${j},1);renderCourseEditor()">×</button>
+            </div>`).join('')
+        }
+        <div class="slot-add">
+          <select class="cec-select" id="sd-day-${i}">${DAY_NAMES.map((d,k)=>`<option value="${k+1}">${d}</option>`).join('')}</select>
+          <select class="cec-select" id="sd-period-${i}">${PERIOD_OPTIONS.map(p=>`<option value="${p}">第${p}节</option>`).join('')}</select>
+          <input class="cec-input wk-input" id="sd-weeks-${i}" placeholder="周次，如 2-18" />
+          <button class="btn btn-ghost" style="padding:7px 12px" onclick="addSlot(${i})">添加时段</button>
+        </div>
+      </div>`}
+      <div style="margin-top:10px;display:flex;justify-content:flex-end">
+        <button class="cec-del" onclick="removeCourse(${i})">删除${isWork(c) ? '这个学生工作' : '这门课程'}</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addSlot(i) {
+  const day = parseInt(document.getElementById('sd-day-' + i).value);
+  const period = document.getElementById('sd-period-' + i).value;
+  const wkStr = document.getElementById('sd-weeks-' + i).value.trim() || '2-18';
+  const weeks = parseWeeks(wkStr);
+  if (!weeks.length) { toast('周次格式有误，例如 2-18 或 2-5,7-18'); return; }
+  if (!editingCourses[i].slots) editingCourses[i].slots = [];
+  editingCourses[i].slots.push({ day, period, weeks });
+  renderCourseEditor();
+}
+
+function addCourseRow() {
+  editingCourses.push({ id: 'c' + uid(), name: '', short: '', color: COLORS[editingCourses.length % COLORS.length], teacher: '', room: '', category: 'humanities', slots: [] });
+  renderCourseEditor();
+}
+
+// 学生工作：无教室、无上课时间、不自动生成任务
+function addWorkRow() {
+  editingCourses.push({ id: 'c' + uid(), name: '', short: '', color: COLORS[editingCourses.length % COLORS.length], teacher: '', room: '', category: 'work', autoGen: false, slots: [] });
+  renderCourseEditor();
+}
+
+function removeCourse(i) {
+  const c = editingCourses[i];
+  const n = countCourseTasks(c.id);
+  const msg = n > 0
+    ? `确定删除「${c.name || '未命名课程'}」吗？\n该课程下的 ${n} 条任务也会一并删除，此操作不可撤销。`
+    : `确定删除「${c.name || '未命名课程'}」吗？`;
+  if (!confirm(msg)) return;
+  editingCourses.splice(i, 1);
+  renderCourseEditor();
+}
+
+function saveModal() {
+  editingCourses = editingCourses.filter(c => c.name.trim());
+  editingCourses.forEach(c => {
+    if (!c.short) c.short = c.name.slice(0, 3);
+    if (!c.category) c.category = 'humanities';
+    // 学生工作：清掉教室与上课时间，并确保不自动生成
+    if (c.category === 'work') { c.slots = []; c.room = ''; c.autoGen = false; }
+    if (!c.slots) c.slots = [];
+  });
+
+  // 被删除的课程：同步清理其任务
+  const removedIds = state.courses
+    .filter(o => !editingCourses.some(c => c.id === o.id))
+    .map(o => o.id);
+  removedIds.forEach(id => {
+    Object.keys(state.shortTerm).forEach(d => {
+      state.shortTerm[d] = state.shortTerm[d].filter(t => t.courseId !== id);
+    });
+    state.longTerm = state.longTerm.filter(l => l.courseId !== id);
+  });
+
+  state.courses = editingCourses;
+
+  // 当前选中的课程被删掉了 → 退回今日
+  if (state.selectedCourse && removedIds.includes(state.selectedCourse)) {
+    state.selectedCourse = null;
+    closeModal();
+    switchTab('today');
+    save(); render();
+    toast('已删除课程，并退回今日视图');
+    return;
+  }
+
+  save();
+  backfillWeek();
+  closeModal();
+  render();
+  toast(removedIds.length ? `已保存，删除 ${removedIds.length} 门课程` : '已保存课程设置');
+}
+
+document.getElementById('manage-courses-btn').addEventListener('click', openModal);
+document.getElementById('add-course-btn').addEventListener('click', () => { openModal(); addCourseRow(); });
+document.getElementById('date-picker').addEventListener('change', e => {
+  if (e.target.value) setViewDate(e.target.value, true);
+});
+document.getElementById('today-btn').addEventListener('click', () => {
+  setViewDate(todayStr(), false);
+  toast('已回到今天');
+});
+document.getElementById('sync-btn').addEventListener('click', syncNow);
+
+// 跨天自动更新：页面一直开着跨过零点，或从后台切回来时，自动切到当天
+function syncToRealToday(notify) {
+  if (state.viewPinned) return;                 // 用户手动选了日期，不打扰
+  if (state.currentDate === todayStr()) return; // 已经是今天，无需处理
+  state.currentDate = todayStr();
+  backfillWeek();
+  save();
+  render();
+  checkReminders();
+  if (notify) toast('日期已自动更新到 ' + fmtDateCN(state.currentDate));
+}
+setInterval(() => syncToRealToday(true), 60000);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) syncToRealToday(false);
+});
+document.getElementById('modal').addEventListener('click', e => { if (e.target.id==='modal') closeModal(); });
+
+/* ===================== Init ===================== */
+render();
+checkReminders();
+syncNow();   // 启动后从云端拉取一次，有网即自动多端同步
+</script>
+</body>
+</html>
